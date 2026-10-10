@@ -3,18 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resume Builder</title>
+  <meta name="color-scheme" content="dark" />
+  <title>Resume Builder AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="bg" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid"></div>
+  </div>
+
   <header class="nav">
     <div class="container nav-inner">
       <a href="#" class="logo">
-        <span class="logo-mark">RB</span>
-        Resume Builder
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/><path d="M19 15l.9 2.1 2.1.9-2.1.9L19 21l-.9-2.1-2.1-.9 2.1-.9z" opacity=".7"/></svg>
+        </span>
+        Resume<span class="logo-ai">AI</span>
       </a>
       <nav class="nav-links">
         <a href="#how">How it works</a>
@@ -27,28 +37,40 @@
     <!-- Hero -->
     <section class="hero">
       <div class="container hero-inner">
-        <span class="pill">Free resume check · No sign-up</span>
-        <h1>See how your resume <span class="accent">really scores</span></h1>
+        <span class="pill"><span class="pill-dot"></span>Free resume check · Runs in your browser</span>
+        <h1>Find out how your resume <span class="gradient-text">really scores</span></h1>
         <p class="lead">
-          Upload your resume as a PDF. Resume Builder scores it, lists the skills it found,
-          and shows which in-demand skills are missing.
+          Upload your resume as a PDF. Get a score, the skills it lists,
+          the skills it's missing, and specific fixes to make. All in a few seconds.
         </p>
-        <a href="#analyze" class="btn btn-large">Upload your resume</a>
+        <div class="hero-cta">
+          <a href="#analyze" class="btn btn-large">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/></svg>
+            Analyze my resume
+          </a>
+          <span class="hero-note">No sign-up · Nothing leaves your device</span>
+        </div>
       </div>
     </section>
 
     <!-- Upload + Results -->
     <section id="analyze" class="analyze">
       <div class="container">
-        <div class="card upload-card">
+        <div class="card upload-card glow-border">
+          <div class="card-label">
+            <span class="dot"></span> Resume analyzer
+          </div>
+
           <label for="file-input" id="dropzone" class="dropzone" tabindex="0">
-            <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <polyline points="9 15 12 12 15 15"/>
-            </svg>
-            <p class="dz-title">Drag &amp; drop your resume here</p>
+            <div class="dz-icon-wrap">
+              <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <polyline points="9 15 12 12 15 15"/>
+              </svg>
+            </div>
+            <p class="dz-title">Drop your resume here</p>
             <p class="dz-sub">or <span class="link">browse files</span> · PDF only, up to 5 MB</p>
             <input type="file" id="file-input" accept="application/pdf,.pdf" hidden />
           </label>
@@ -66,9 +88,19 @@
 
           <p id="error" class="error hidden" role="alert"></p>
 
-          <div id="loading" class="loading hidden">
-            <div class="spinner"></div>
-            <p>Analyzing your resume…</p>
+          <div id="loading" class="loading hidden" aria-live="polite">
+            <div class="scan">
+              <div class="scan-doc">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="scan-line"></div>
+            </div>
+            <ol id="stages" class="stages">
+              <li data-stage="0">Reading PDF</li>
+              <li data-stage="1">Pulling out skills</li>
+              <li data-stage="2">Checking sections &amp; contact info</li>
+              <li data-stage="3">Working out your score</li>
+            </ol>
           </div>
         </div>
 
@@ -77,6 +109,13 @@
             <h2>Resume score</h2>
             <div class="gauge">
               <svg viewBox="0 0 120 120">
+                <defs>
+                  <linearGradient id="gauge-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#22d3ee" />
+                    <stop offset="55%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#ec4899" />
+                  </linearGradient>
+                </defs>
                 <circle class="gauge-track" cx="60" cy="60" r="52" />
                 <circle id="gauge-fill" class="gauge-fill" cx="60" cy="60" r="52" />
               </svg>
@@ -86,6 +125,21 @@
             </div>
             <p id="score-verdict" class="verdict"></p>
             <p id="score-summary" class="summary"></p>
+          </div>
+
+          <div class="card insight-card">
+            <div class="insight-head">
+              <span class="ai-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/></svg>
+                Summary
+              </span>
+            </div>
+            <p id="insight-text" class="insight-text"></p>
+
+            <div id="breakdown" class="breakdown"></div>
+
+            <h3 class="sub-title">Suggested fixes</h3>
+            <ul id="tips" class="tips"></ul>
           </div>
 
           <div class="card skills-card">
@@ -101,7 +155,7 @@
               <h2>Skills missing</h2>
               <span id="missing-count" class="count count-bad">0</span>
             </div>
-            <p class="hint">Consider adding these if they match your experience.</p>
+            <p class="hint">Add these if they match your experience.</p>
             <ul id="missing-list" class="chips"></ul>
           </div>
         </div>
@@ -111,22 +165,23 @@
     <!-- How it works -->
     <section id="how" class="how">
       <div class="container">
-        <h2 class="section-title">How it works</h2>
+        <p class="eyebrow">How it works</p>
+        <h2 class="section-title">From PDF to feedback in three steps</h2>
         <div class="steps">
           <div class="step">
-            <span class="step-num">1</span>
+            <span class="step-num">01</span>
             <h3>Upload</h3>
-            <p>Drop in your resume as a PDF. It stays in your browser and is never uploaded anywhere.</p>
+            <p>Drop in your resume as a PDF. It's read in your browser and never sent anywhere.</p>
           </div>
           <div class="step">
-            <span class="step-num">2</span>
+            <span class="step-num">02</span>
             <h3>Scan</h3>
-            <p>We pull out the text and match it against a list of in-demand skills.</p>
+            <p>The text is checked for 20 in-demand skills, standard sections, contact details and measurable results.</p>
           </div>
           <div class="step">
-            <span class="step-num">3</span>
+            <span class="step-num">03</span>
             <h3>Improve</h3>
-            <p>Check your score, see the gaps, and add the skills that are missing.</p>
+            <p>See your score, how it breaks down, and a short list of fixes to make first.</p>
           </div>
         </div>
       </div>
