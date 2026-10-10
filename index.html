@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">RB</span>
+        Resume Builder
+      </a>
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#analyze" class="btn btn-small">Analyze resume</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <span class="pill">Free resume check · No sign-up</span>
+        <h1>See how your resume <span class="accent">really scores</span></h1>
+        <p class="lead">
+          Upload your resume as a PDF. Resume Builder scores it, lists the skills it found,
+          and shows which in-demand skills are missing.
+        </p>
+        <a href="#analyze" class="btn btn-large">Upload your resume</a>
+      </div>
+    </section>
+
+    <!-- Upload + Results -->
+    <section id="analyze" class="analyze">
+      <div class="container">
+        <div class="card upload-card">
+          <label for="file-input" id="dropzone" class="dropzone" tabindex="0">
+            <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            <p class="dz-title">Drag &amp; drop your resume here</p>
+            <p class="dz-sub">or <span class="link">browse files</span> · PDF only, up to 5 MB</p>
+            <input type="file" id="file-input" accept="application/pdf,.pdf" hidden />
+          </label>
+
+          <div id="file-info" class="file-info hidden">
+            <div class="file-meta">
+              <span class="file-badge">PDF</span>
+              <div>
+                <p id="file-name" class="file-name"></p>
+                <p id="file-size" class="file-size"></p>
+              </div>
+            </div>
+            <button id="reset-btn" class="btn btn-ghost" type="button">Remove</button>
+          </div>
+
+          <p id="error" class="error hidden" role="alert"></p>
+
+          <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Analyzing your resume…</p>
+          </div>
+        </div>
+
+        <div id="results" class="results hidden" aria-live="polite">
+          <div class="card score-card">
+            <h2>Resume score</h2>
+            <div class="gauge">
+              <svg viewBox="0 0 120 120">
+                <circle class="gauge-track" cx="60" cy="60" r="52" />
+                <circle id="gauge-fill" class="gauge-fill" cx="60" cy="60" r="52" />
+              </svg>
+              <div class="gauge-label">
+                <span id="score-value">0</span><small>/100</small>
+              </div>
+            </div>
+            <p id="score-verdict" class="verdict"></p>
+            <p id="score-summary" class="summary"></p>
+          </div>
+
+          <div class="card skills-card">
+            <div class="skills-head">
+              <h2>Skills found</h2>
+              <span id="present-count" class="count count-good">0</span>
+            </div>
+            <ul id="present-list" class="chips"></ul>
+          </div>
+
+          <div class="card skills-card">
+            <div class="skills-head">
+              <h2>Skills missing</h2>
+              <span id="missing-count" class="count count-bad">0</span>
+            </div>
+            <p class="hint">Consider adding these if they match your experience.</p>
+            <ul id="missing-list" class="chips"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="how">
+      <div class="container">
+        <h2 class="section-title">How it works</h2>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <h3>Upload</h3>
+            <p>Drop in your resume as a PDF. It stays in your browser and is never uploaded anywhere.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <h3>Scan</h3>
+            <p>We pull out the text and match it against a list of in-demand skills.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <h3>Improve</h3>
+            <p>Check your score, see the gaps, and add the skills that are missing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 Resume Builder · Mock design, everything runs in your browser.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
