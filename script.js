@@ -33,9 +33,7 @@ const SECTIONS = [
   { label: "Summary", pattern: "summary|objective|profile" },
 ];
 const MAX_SIZE = 5 * 1024 * 1024;
-const GAUGE_LENGTH = 2 * Math.PI * 52;
 const STAGE_MS = 450;
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const $ = (id) => document.getElementById(id);
 const dropzone = $("dropzone");
@@ -99,7 +97,7 @@ async function handleFile(file) {
   if (id !== runId) return; // the file was removed or replaced mid-analysis
 
   $("loading").classList.add("hidden");
-  renderResults(text.trim().length > 50 ? analyze(text) : sampleResult());
+  renderResults(text.trim().length > 50 ? analyze(text) : sampleResult(), file.name);
 }
 
 async function extractText(file) {
@@ -205,33 +203,28 @@ function sampleResult() {
 }
 
 // --- Rendering ---
-function renderResults({ score, present, missing, sample, breakdown, tips }) {
-  const { label, color } = verdictFor(score);
-  $("score-value").textContent = "0";
+function renderResults({ score, present, missing, sample, breakdown, tips }, fileName) {
+  const label = verdictFor(score);
+  $("result-title").textContent = fileName;
+  $("score-value").textContent = score;
   $("score-verdict").textContent = label;
-  $("score-verdict").style.color = color;
   $("score-summary").textContent = sample
-    ? "Sample results: we couldn't read text from this PDF."
-    : `${present.length} of ${SKILLS.length} key skills found.`;
-
-  const fill = $("gauge-fill");
-  fill.style.strokeDashoffset = GAUGE_LENGTH;
+    ? "Sample results. We couldn't read the text in this PDF."
+    : `${present.length} of ${SKILLS.length} key skills found`;
+  $("insight-text").textContent = insightFor(score, label, present, missing, sample);
 
   renderBreakdown(breakdown);
   renderTips(tips);
-  renderChips($("present-list"), present, "chip-good", "No matching skills found.");
-  renderChips($("missing-list"), missing, "chip-bad", "Nothing missing. Nice work!");
+  renderChips($("present-list"), present, "chip-good", "None of the skills we check for were found.");
+  renderChips($("missing-list"), missing, "chip-bad", "Nothing missing. Every skill we check for is there.");
   $("present-count").textContent = present.length;
   $("missing-count").textContent = missing.length;
 
-  $("results").classList.remove("hidden");
-  requestAnimationFrame(() => {
-    fill.style.strokeDashoffset = GAUGE_LENGTH * (1 - score / 100);
-    countUp($("score-value"), score);
-    $("breakdown").querySelectorAll(".bar-fill").forEach((bar) => (bar.style.width = bar.dataset.width));
-  });
-  typeText($("insight-text"), insightFor(score, label, present, missing, sample));
-  $("results").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const results = $("results");
+  results.classList.remove("hidden", "marked");
+  results.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Start the pen and highlighter once the sheet is on screen.
+  setTimeout(() => results.classList.add("marked"), 350);
 }
 
 function renderChips(list, items, cls, emptyText) {
@@ -246,7 +239,7 @@ function renderChips(list, items, cls, emptyText) {
   items.forEach((name, i) => {
     const li = document.createElement("li");
     li.className = `chip ${cls}`;
-    li.style.animationDelay = `${i * 35}ms`;
+    li.style.animationDelay = `${0.9 + i * 0.08}s`;
     li.textContent = name;
     list.appendChild(li);
   });
@@ -257,11 +250,10 @@ function renderBreakdown(rows) {
   box.innerHTML = "";
   rows.forEach(({ label, value, max }) => {
     const row = document.createElement("div");
-    row.className = "bar-row";
     row.innerHTML = '<div class="bar-meta"><span></span><span class="bar-num"></span></div><div class="bar"><div class="bar-fill"></div></div>';
     row.querySelector(".bar-meta span").textContent = label;
-    row.querySelector(".bar-num").textContent = `${Math.round(value)}/${max}`;
-    row.querySelector(".bar-fill").dataset.width = `${(value / max) * 100}%`;
+    row.querySelector(".bar-num").textContent = `${Math.round(value)} / ${max}`;
+    row.querySelector(".bar-fill").style.width = `${(value / max) * 100}%`;
     box.appendChild(row);
   });
 }
@@ -278,62 +270,28 @@ function renderTips(tips) {
 
 function insightFor(score, label, present, missing, sample) {
   if (sample) {
-    return "We couldn't read the text in this PDF (it may be a scanned image), so this is a sample analysis. Upload a PDF with selectable text to see your real results.";
+    return "This PDF may be a scanned image, so these are example results. Upload a PDF where you can select the text to see your real score.";
   }
   const strong = present.slice(0, 3).join(", ");
   const gaps = missing.slice(0, 3).join(", ");
-  let msg = `Your resume scores ${score}/100 (${label.toLowerCase()}). `;
-  msg += strong ? `Its strongest areas are ${strong}. ` : "We didn't find many of the skills we check for. ";
-  msg += gaps ? `The biggest gaps are ${gaps}. Start with the fixes below.` : "It covers every skill we check for.";
+  let msg = `${label}. `;
+  msg += strong ? `It's strongest on ${strong}. ` : "It mentions few of the skills recruiters search for. ";
+  msg += gaps ? `The biggest gaps are ${gaps}.` : "It covers every skill we check for.";
   return msg;
 }
 
-function typeText(el, text) {
-  const token = (el.dataset.token = String(Math.random()));
-  if (reduceMotion) {
-    el.textContent = text;
-    return;
-  }
-  el.classList.add("typing");
-  el.textContent = "";
-  let i = 0;
-  const tick = () => {
-    if (el.dataset.token !== token) return;
-    el.textContent = text.slice(0, ++i);
-    if (i < text.length) setTimeout(tick, 14);
-    else el.classList.remove("typing");
-  };
-  tick();
-}
-
 function verdictFor(score) {
-  if (score >= 80) return { label: "Excellent", color: "#34d399" };
-  if (score >= 60) return { label: "Good", color: "#a78bfa" };
-  if (score >= 40) return { label: "Needs work", color: "#fbbf24" };
-  return { label: "Weak", color: "#f87171" };
-}
-
-function countUp(el, target) {
-  if (reduceMotion) {
-    el.textContent = target;
-    return;
-  }
-  const start = performance.now();
-  const duration = 1000;
-  const step = (now) => {
-    const t = Math.min((now - start) / duration, 1);
-    el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3)));
-    if (t < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
+  if (score >= 80) return "Excellent";
+  if (score >= 60) return "Good";
+  if (score >= 40) return "Needs work";
+  return "Weak";
 }
 
 function reset() {
   runId++;
   fileInput.value = "";
-  $("insight-text").dataset.token = "";
-  $("insight-text").classList.remove("typing");
   dropzone.classList.remove("hidden");
+  $("results").classList.remove("marked");
   ["file-info", "loading", "results", "error"].forEach((id) => $(id).classList.add("hidden"));
 }
 
