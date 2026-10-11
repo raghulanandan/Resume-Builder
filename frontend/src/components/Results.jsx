@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { SKILLS, insightFor, verdictFor } from "../lib/analyze.js";
+import { insightFor, summaryFor, verdictFor } from "../lib/text.js";
 
-export default function Results({ result, fileName }) {
-  const { score, present, missing, sample, breakdown, tips } = result;
+export default function Results({ result }) {
+  const { fileName, score, skills, keywords, breakdown, tips } = result;
   const ref = useRef(null);
   const [marked, setMarked] = useState(false);
 
@@ -13,17 +13,16 @@ export default function Results({ result, fileName }) {
     return () => clearTimeout(t);
   }, []);
 
+  const skillsAsked = skills.matched.length + skills.missing.length;
+  const keywordCount = keywords.matched.length + keywords.missing.length;
+
   return (
     <section ref={ref} id="results" className={`results${marked ? " marked" : ""}`} aria-live="polite">
       <div className="container">
         <article className="sheet result-sheet">
           <header className="sheet-head">
             <h2>{fileName}</h2>
-            <p className="summary">
-              {sample
-                ? "Sample results. We couldn't read the text in this PDF."
-                : `${present.length} of ${SKILLS.length} key skills found`}
-            </p>
+            <p className="summary">{summaryFor(result)}</p>
           </header>
 
           <div className="sheet-body">
@@ -37,21 +36,38 @@ export default function Results({ result, fileName }) {
                 ))}
               </ul>
 
-              <h3>
-                Skills found <span className="count">{present.length}</span>
-              </h3>
-              <SkillList
-                items={present}
-                className="chip-good"
-                emptyText="None of the skills we check for were found."
-                staggered
-              />
+              {skillsAsked > 0 && (
+                <>
+                  <h3>
+                    Skills the job asks for <span className="count">{skills.matched.length} of {skillsAsked}</span>
+                  </h3>
+                  <p className="hint">Highlighted ones are on your resume. Ones marked ^ are missing.</p>
+                  <MatchList matched={skills.matched} missing={skills.missing} />
+                </>
+              )}
 
-              <h3>
-                Skills missing <span className="count">{missing.length}</span>
-              </h3>
-              <p className="hint">Add these if they match your experience.</p>
-              <SkillList items={missing} className="chip-bad" emptyText="Nothing missing. Every skill we check for is there." />
+              {keywordCount > 0 && (
+                <>
+                  <h3>
+                    Keywords from the job ad <span className="count">{keywords.matched.length} of {keywordCount}</span>
+                  </h3>
+                  <MatchList matched={keywords.matched} missing={keywords.missing} />
+                </>
+              )}
+
+              {skills.extra.length > 0 && (
+                <>
+                  <h3>Also on your resume</h3>
+                  <p className="hint">This job doesn't mention these. Keep them if they're relevant.</p>
+                  <ul className="chips">
+                    {skills.extra.map((name) => (
+                      <li key={name} className="chip chip-plain">
+                        {name}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
 
             <aside className="sheet-margin">
@@ -89,22 +105,20 @@ export default function Results({ result, fileName }) {
   );
 }
 
-function SkillList({ items, className, emptyText, staggered = false }) {
+// Matched items get the highlighter (one after another); missing ones get a red caret.
+function MatchList({ matched, missing }) {
   return (
     <ul className="chips">
-      {items.length ? (
-        items.map((name, i) => (
-          <li
-            key={name}
-            className={`chip ${className}`}
-            style={staggered ? { animationDelay: `${0.9 + i * 0.08}s` } : undefined}
-          >
-            {name}
-          </li>
-        ))
-      ) : (
-        <li className="chip-empty">{emptyText}</li>
-      )}
+      {matched.map((name, i) => (
+        <li key={name} className="chip chip-good" style={{ animationDelay: `${0.9 + i * 0.08}s` }}>
+          {name}
+        </li>
+      ))}
+      {missing.map((name) => (
+        <li key={name} className="chip chip-bad">
+          {name}
+        </li>
+      ))}
     </ul>
   );
 }

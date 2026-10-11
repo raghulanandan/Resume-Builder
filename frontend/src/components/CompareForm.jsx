@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
-import { STAGES, formatSize } from "../lib/analyze.js";
+import { JOB_MAX, JOB_MIN, STAGES, formatSize } from "../lib/text.js";
 
-export default function Uploader({ file, error, stage, onFile, onReset }) {
+export default function CompareForm({ file, jobDescription, error, stage, onFile, onRemoveFile, onJobChange, onSubmit }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
+  const busy = stage >= 0;
+  const jobLength = jobDescription.trim().length;
+  const ready = file && jobLength >= JOB_MIN && jobLength <= JOB_MAX && !busy;
 
   function handleDrop(e) {
     e.preventDefault();
@@ -25,8 +28,14 @@ export default function Uploader({ file, error, stage, onFile, onReset }) {
     }
   }
 
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (ready) onSubmit();
+  }
+
   return (
-    <div id="analyze" className="upload">
+    <form id="analyze" className="upload" onSubmit={handleSubmit} noValidate>
+      <p className="field-label" id="resume-label">Your resume</p>
       {file ? (
         <div className="file-info">
           <div className="file-meta">
@@ -36,7 +45,7 @@ export default function Uploader({ file, error, stage, onFile, onReset }) {
               <p className="file-size">{formatSize(file.size)}</p>
             </div>
           </div>
-          <button className="btn-ghost" type="button" onClick={onReset}>
+          <button className="btn-ghost" type="button" onClick={onRemoveFile} disabled={busy}>
             Remove
           </button>
         </div>
@@ -45,6 +54,7 @@ export default function Uploader({ file, error, stage, onFile, onReset }) {
           htmlFor="file-input"
           className={`dropzone${dragging ? " dragover" : ""}`}
           tabIndex={0}
+          aria-labelledby="resume-label"
           onKeyDown={handleKeyDown}
           onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -61,11 +71,28 @@ export default function Uploader({ file, error, stage, onFile, onReset }) {
             <span className="dz-title">
               Drop your resume here, or <span className="link">choose a file</span>
             </span>
-            <span className="dz-sub">PDF up to 5 MB. It's read in your browser and never uploaded.</span>
+            <span className="dz-sub">PDF up to 5 MB. We save the results, not the file.</span>
           </span>
           <input ref={inputRef} type="file" id="file-input" accept="application/pdf,.pdf" hidden onChange={handleChange} />
         </label>
       )}
+
+      <label className="field-label" htmlFor="job-description">
+        The job description
+      </label>
+      <textarea
+        id="job-description"
+        className="job-input"
+        rows={7}
+        maxLength={JOB_MAX}
+        placeholder="Paste the full job ad, including the requirements."
+        value={jobDescription}
+        onChange={(e) => onJobChange(e.target.value)}
+        disabled={busy}
+      />
+      <p className="field-hint">
+        {jobLength < JOB_MIN ? `At least ${JOB_MIN} characters` : `${jobLength.toLocaleString("en-US")} characters`}
+      </p>
 
       {error && (
         <p className="error" role="alert">
@@ -73,7 +100,7 @@ export default function Uploader({ file, error, stage, onFile, onReset }) {
         </p>
       )}
 
-      {stage >= 0 && (
+      {busy ? (
         <div className="loading" aria-live="polite">
           <ol className="stages">
             {STAGES.map((label, i) => (
@@ -83,7 +110,11 @@ export default function Uploader({ file, error, stage, onFile, onReset }) {
             ))}
           </ol>
         </div>
+      ) : (
+        <button className="btn-primary" type="submit" disabled={!ready}>
+          Compare resume to job
+        </button>
       )}
-    </div>
+    </form>
   );
 }

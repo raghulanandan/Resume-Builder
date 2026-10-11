@@ -22,7 +22,7 @@ export default function ExampleSheet() {
         <p className="pv-h">Skills</p>
         <p className="pv-line">
           <mark>JavaScript</mark>, <mark>CSS</mark>, <mark>Git</mark>, Figma
-          <span className="pv-caret">^ Docker, Testing</span>
+          <span className="pv-caret">^ job asks for Docker</span>
         </p>
         <span className="pv-bar"></span>
         <span className="pv-bar short"></span>

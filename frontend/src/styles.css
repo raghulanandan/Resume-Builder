@@ -108,6 +108,44 @@ a { color: inherit; }
 }
 .btn-ghost:hover { color: var(--ink); border-color: var(--pencil); }
 
+.field-label { display: block; font-weight: 600; font-size: 0.95rem; margin: 0 0 8px; }
+.dropzone + .field-label,
+.file-info + .field-label { margin-top: 22px; }
+.job-input {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid #9aa5b4;
+  border-radius: 6px;
+  resize: vertical;
+}
+.job-input::placeholder { color: #8892a0; }
+.job-input:focus { border-color: var(--ink); outline: none; box-shadow: 0 0 0 3px rgba(28, 36, 51, 0.12); }
+.job-input:disabled { background: #f4f6f8; color: var(--pencil); }
+.field-hint { font-size: 0.85rem; color: var(--pencil); margin-top: 6px; }
+
+.btn-primary {
+  margin-top: 18px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--ink);
+  border: none;
+  border-radius: 6px;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover:not(:disabled) { background: #2d3a52; }
+.btn-primary:disabled { background: #aab2be; cursor: not-allowed; }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .error {
   margin-top: 12px;
   padding: 10px 14px;
@@ -222,7 +260,7 @@ a { color: inherit; }
   color: var(--red);
   margin-right: 4px;
 }
-.chip-empty { color: var(--pencil); }
+.chip-plain { color: var(--pencil); }
 
 /* Margin column: grade, breakdown, notes */
 .sheet-margin { border-left: 1px solid var(--red-soft); padding-left: 32px; }
