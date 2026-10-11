@@ -71,22 +71,40 @@ I want to build an HTML, CSS, JS landing page for my resume parser, where I shou
 - All comparison logic lives in one function, `compare(resumeText, jobText)` in `backend/src/lib/compare.js`.
 - The AI version should replace or wrap that function and return the same shape: `score`, `skills`, `keywords`, `breakdown` and `tips`. The route, the database model and the UI can then stay as they are.
 
-### 7. Deploying to Vercel as two projects
-- One Vercel project per folder: the **frontend** project uses `frontend/` as its root directory, and the **backend** project uses `backend/`. Each folder has its own `vercel.json`.
-- **Frontend:** a standard Vite build that outputs to `dist`. Its `vercel.json` forwards `/api/*` to the backend project's URL, so the browser only talks to one domain and the backend needs no CORS setup.
-- **Backend:** Express runs as a single serverless function.
-  - `api/index.js` is the Vercel entry point, and `vercel.json` sends every request to it.
-  - It connects to MongoDB once and reuses the connection while the function stays warm (`src/db.js`).
-  - If the database can't be reached, it returns a clear 503 error.
-  - `src/server.js` is still used for local development only.
-- Changes made for Vercel:
-  - **Upload limit lowered from 5 MB to 4 MB.** Vercel rejects request bodies over 4.5 MB, so larger files would fail before reaching the server.
-  - **pdf.js worker imported directly.** Otherwise Vercel's bundler could leave the file out.
-  - **Node 22 pinned** in both `package.json` files. pdfjs-dist needs Node 22.13 or newer.
-  - **Function time limit set to 30 seconds** for large PDFs.
+### 7. Deploying to Vercel as one project with services
+- First plan was two separate Vercel projects, with the frontend forwarding `/api` to the backend's URL. Replaced by Vercel **services**: one project, one domain, and one `vercel.json` at the repo root that defines both parts.
+- Services:
+  - `backend`: root `backend/`, framework Express, entrypoint `src/app.js`. It runs as a single serverless function.
+  - `frontend`: root `frontend/`, framework Vite.
+- Public routing (top-level rewrites, most specific first):
+  - `/api/(.*)` goes to `backend`. The backend receives the full path (`/api/analyses`), so the Express routes stay under `/api`.
+  - Everything else (`/(.*)`) goes to `frontend`.
+- No bindings. Bindings are for server-to-server calls, and none happen here: the browser calls the backend at the public `/api` path, and the backend doesn't call the frontend.
+- The frontend still calls the relative path `/api/analyses`. This works on Vercel (same domain) and locally (the Vite dev proxy sends `/api` to port 5000).
+- Backend changes:
+  - `src/app.js` is the entrypoint. It connects to MongoDB on the first request and reuses the connection (`src/db.js`). If the database can't be reached, `/api/health` and `/api/analyses` return 503.
+  - `src/server.js` is only for local development.
+  - Removed the earlier `backend/api/index.js`, `backend/vercel.json` and `frontend/vercel.json`.
+- Kept from the first plan: a 4 MB upload limit (Vercel rejects bodies over 4.5 MB), the pdf.js worker imported directly so it gets bundled, and Node 22 pinned in both `package.json` files.
+- MongoDB is external. On Vercel, set `MONGODB_URI` as a project environment variable pointing to MongoDB Atlas. In Atlas Network Access, allow `0.0.0.0/0`, since Vercel has no fixed IP addresses. `docker-compose.yml` is for local development only.
 - Setup steps:
-  1. Create a MongoDB Atlas cluster. Under Network Access, allow `0.0.0.0/0`, since Vercel has no fixed IP addresses.
-  2. Backend project: set the root directory to `backend`, add the `MONGODB_URI` environment variable with the Atlas connection string, and deploy.
-  3. In `frontend/vercel.json`, replace `YOUR-BACKEND-PROJECT.vercel.app` with the backend's real domain, then commit.
-  4. Frontend project: set the root directory to `frontend` and deploy.
-  5. Check `https://<frontend>/api/health`. It should show `"database":"connected"`.
+  1. Import the repo into Vercel as one project, leaving the root directory as the repo root.
+  2. Add `MONGODB_URI` in Project Settings → Environment Variables.
+  3. Deploy, then check `https://<domain>/api/health`. It should show `"database":"connected"`.
+- To test everything together locally, run `vercel dev` (Vercel CLI 47.0.5 or newer).
+
+### 8. AI scoring with labd
+- Resumes are now scored by labd, an AI chat API (`https://agent.thedevlabs.io/v1/api/chat`). The backend sends the resume text and the job description and asks for a single JSON answer.
+- The API key stays on the server as `LABD_API_KEY` (in `backend/.env` locally, and as a Vercel environment variable when deployed). labd won't answer browsers, and a key in the web page could be copied.
+- Files:
+  - `backend/src/lib/labd.js`: the API client. It turns 401, 402, 403 and 429 into clear errors and retries a 429 once after 3 seconds.
+  - `backend/src/lib/aiCompare.js`: builds the prompt, pulls the JSON out of the reply, and checks and cleans it.
+  - `backend/src/lib/score.js`: picks the scorer. It uses the AI when a key is set, and falls back to keyword matching (`compare.js`) if the AI fails.
+- The AI returns the same shape as keyword matching (skills, keywords, breakdown, tips), plus a 2 to 3 sentence `summary` written to the candidate. The UI shows that summary at the top of the results.
+- AI score categories, out of 100: skills match 40, experience relevance 30, keywords and wording 15, resume quality 15. The AI scores each category, the server keeps each one within its range, and the server adds them up. That keeps the total consistent and stops the AI from inventing its own total.
+- Each saved result records `engine`: `"ai"` or `"keywords"`. When the AI wasn't available, the results page says so.
+- Why there's a fallback: an empty allowance (402), rate limits (429), a timeout or an unreadable reply shouldn't block the user. They get keyword-matching results and the reason is logged on the server.
+- Limits: resume text is cut at 15,000 characters for the prompt, and the AI request times out after 150 seconds.
+- Speed: one comparison took 48 to 89 seconds in testing. While the AI works, the loading list stays on "Comparing it with the job. This can take a minute or two." Vercel's default function time limit (300 seconds with Fluid compute) is enough.
+- Privacy: resume text is now sent to labd. The footer and "How it works" say so. The PDF itself is still never stored.
+- Each comparison uses the same labd allowance as the labd portal, editor and terminal.

@@ -1,8 +1,8 @@
 const STEPS = [
   { title: "Add your resume and the job", text: "Upload your resume as a PDF and paste the job ad. We read the PDF, then discard it." },
   {
-    title: "We compare them",
-    text: "We check which skills and key terms from the job appear in your resume, plus sections, contact details and results backed by numbers.",
+    title: "AI compares them",
+    text: "An AI reviews your resume against the job: the skills and terms it asks for, how relevant your experience is, and how clear your resume is.",
   },
   { title: "Fix the gaps", text: "You get a match score, how it was worked out, and the changes that will raise it most." },
 ];

@@ -233,6 +233,7 @@ a { color: inherit; }
 .sheet-head { padding-bottom: 18px; border-bottom: 1px solid var(--rule); margin-bottom: 28px; }
 .sheet-head h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.015em; overflow-wrap: anywhere; }
 .summary { color: var(--pencil); margin-top: 2px; }
+.engine-note { font-size: 0.88rem; color: var(--pencil); margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--rule); }
 
 .sheet-body { display: grid; grid-template-columns: 1fr 300px; gap: 56px; }
 .sheet-main h3,

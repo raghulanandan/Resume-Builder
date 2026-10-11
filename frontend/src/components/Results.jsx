@@ -23,6 +23,9 @@ export default function Results({ result }) {
           <header className="sheet-head">
             <h2>{fileName}</h2>
             <p className="summary">{summaryFor(result)}</p>
+            {result.engine === "keywords" && (
+              <p className="engine-note">The AI review wasn't available, so this was scored with keyword matching.</p>
+            )}
           </header>
 
           <div className="sheet-body">

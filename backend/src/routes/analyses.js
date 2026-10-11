@@ -2,7 +2,7 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import multer from "multer";
 import Analysis from "../models/Analysis.js";
-import { compare } from "../lib/compare.js";
+import { scoreResume } from "../lib/score.js";
 import { extractText } from "../lib/pdf.js";
 
 // Vercel rejects request bodies over 4.5 MB, so keep uploads under that.
@@ -48,7 +48,7 @@ router.post("/", upload.single("resume"), async (req, res, next) => {
     }
 
     const saved = await Analysis.create({
-      ...compare(text, jobDescription),
+      ...(await scoreResume(text, jobDescription)),
       fileName: file.originalname,
       fileSize: file.size,
       jobDescription,

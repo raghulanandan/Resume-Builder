@@ -1,17 +1,35 @@
+// The Express app. Vercel uses this file as the backend's entrypoint; locally,
+// src/server.js imports it and listens on a port.
 import express from "express";
-import mongoose from "mongoose";
 import multer from "multer";
 import analysesRouter from "./routes/analyses.js";
+import { connectDb } from "./db.js";
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/api/health", (_req, res) => {
-  const connected = mongoose.connection.readyState === 1;
+// Connects on first use and reuses the connection after that, so this works
+// both on a long-running server and in a serverless function.
+async function ensureDb() {
+  try {
+    await connectDb();
+    return true;
+  } catch (err) {
+    console.error("Could not connect to MongoDB:", err.message);
+    return false;
+  }
+}
+
+app.get("/api/health", async (_req, res) => {
+  const connected = await ensureDb();
   res.status(connected ? 200 : 503).json({ status: connected ? "ok" : "degraded", database: connected ? "connected" : "disconnected" });
 });
 
+app.use("/api/analyses", async (_req, res, next) => {
+  if (await ensureDb()) return next();
+  res.status(503).json({ error: "The database is unavailable. Try again in a moment." });
+});
 app.use("/api/analyses", analysesRouter);
 
 app.use("/api", (_req, res) => {
