@@ -248,7 +248,7 @@ a { color: inherit; }
   color: var(--red);
   transform: rotate(-5deg);
 }
-#score-value { font-size: 4rem; line-height: 1; }
+.grade-score { font-size: 4rem; line-height: 1; }
 .grade-num small { font-size: 1.5rem; margin-left: 2px; }
 .verdict { font-family: var(--font-hand); font-size: 1.6rem; font-weight: 700; color: var(--red); line-height: 1.1; margin-top: 2px; }
 
