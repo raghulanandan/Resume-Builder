@@ -13,5 +13,8 @@
     "mongoose": "^9.11.1",
     "multer": "^2.4.0",
     "pdfjs-dist": "^6.4.299"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

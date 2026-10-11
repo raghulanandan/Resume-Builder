@@ -21,7 +21,7 @@ app.use("/api", (_req, res) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   if (err instanceof multer.MulterError) {
-    const message = err.code === "LIMIT_FILE_SIZE" ? "That file is larger than 5 MB. Please upload a smaller PDF." : "Upload one PDF in the “resume” field.";
+    const message = err.code === "LIMIT_FILE_SIZE" ? "That file is larger than 4 MB. Please upload a smaller PDF." : "Upload one PDF in the “resume” field.";
     return res.status(400).json({ error: message });
   }
   console.error(err);

@@ -1,6 +1,6 @@
 // Wording, limits and formatting helpers for the comparison UI.
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024;
+export const MAX_FILE_SIZE = 4 * 1024 * 1024;
 export const JOB_MIN = 50;
 export const JOB_MAX = 20000;
 

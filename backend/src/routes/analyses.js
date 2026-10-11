@@ -5,7 +5,8 @@ import Analysis from "../models/Analysis.js";
 import { compare } from "../lib/compare.js";
 import { extractText } from "../lib/pdf.js";
 
-const MAX_SIZE = 5 * 1024 * 1024;
+// Vercel rejects request bodies over 4.5 MB, so keep uploads under that.
+const MAX_SIZE = 4 * 1024 * 1024;
 const JOB_MIN = 50;
 const JOB_MAX = 20000;
 

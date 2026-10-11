@@ -22,7 +22,7 @@ export default function App() {
     setError("");
     const isPdf = next.type === "application/pdf" || next.name.toLowerCase().endsWith(".pdf");
     if (!isPdf) return setError("Please upload a PDF file.");
-    if (next.size > MAX_FILE_SIZE) return setError("That file is larger than 5 MB. Please upload a smaller PDF.");
+    if (next.size > MAX_FILE_SIZE) return setError("That file is larger than 4 MB. Please upload a smaller PDF.");
     setFile(next);
   }
 

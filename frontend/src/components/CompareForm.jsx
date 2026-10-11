@@ -71,7 +71,7 @@ export default function CompareForm({ file, jobDescription, error, stage, onFile
             <span className="dz-title">
               Drop your resume here, or <span className="link">choose a file</span>
             </span>
-            <span className="dz-sub">PDF up to 5 MB. We save the results, not the file.</span>
+            <span className="dz-sub">PDF up to 4 MB. We save the results, not the file.</span>
           </span>
           <input ref={inputRef} type="file" id="file-input" accept="application/pdf,.pdf" hidden onChange={handleChange} />
         </label>

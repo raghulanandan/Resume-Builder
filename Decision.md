@@ -70,3 +70,23 @@ I want to build an HTML, CSS, JS landing page for my resume parser, where I shou
 #### Where the AI will go
 - All comparison logic lives in one function, `compare(resumeText, jobText)` in `backend/src/lib/compare.js`.
 - The AI version should replace or wrap that function and return the same shape: `score`, `skills`, `keywords`, `breakdown` and `tips`. The route, the database model and the UI can then stay as they are.
+
+### 7. Deploying to Vercel as two projects
+- One Vercel project per folder: the **frontend** project uses `frontend/` as its root directory, and the **backend** project uses `backend/`. Each folder has its own `vercel.json`.
+- **Frontend:** a standard Vite build that outputs to `dist`. Its `vercel.json` forwards `/api/*` to the backend project's URL, so the browser only talks to one domain and the backend needs no CORS setup.
+- **Backend:** Express runs as a single serverless function.
+  - `api/index.js` is the Vercel entry point, and `vercel.json` sends every request to it.
+  - It connects to MongoDB once and reuses the connection while the function stays warm (`src/db.js`).
+  - If the database can't be reached, it returns a clear 503 error.
+  - `src/server.js` is still used for local development only.
+- Changes made for Vercel:
+  - **Upload limit lowered from 5 MB to 4 MB.** Vercel rejects request bodies over 4.5 MB, so larger files would fail before reaching the server.
+  - **pdf.js worker imported directly.** Otherwise Vercel's bundler could leave the file out.
+  - **Node 22 pinned** in both `package.json` files. pdfjs-dist needs Node 22.13 or newer.
+  - **Function time limit set to 30 seconds** for large PDFs.
+- Setup steps:
+  1. Create a MongoDB Atlas cluster. Under Network Access, allow `0.0.0.0/0`, since Vercel has no fixed IP addresses.
+  2. Backend project: set the root directory to `backend`, add the `MONGODB_URI` environment variable with the Atlas connection string, and deploy.
+  3. In `frontend/vercel.json`, replace `YOUR-BACKEND-PROJECT.vercel.app` with the backend's real domain, then commit.
+  4. Frontend project: set the root directory to `frontend` and deploy.
+  5. Check `https://<frontend>/api/health`. It should show `"database":"connected"`.
